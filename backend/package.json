@@ -1,0 +1,38 @@
+{
+  "name": "projeto-extensao",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node-dev src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "learn, connect, backend"
+  ],
+  "author": "Mateus Ribeiro Costa, Lucas Shouji Ishizawa",
+  "license": "ISC",
+  "description": "Backend do projeto LearnConnect",
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/express-validator": "^2.20.33",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.13.10",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "class-validator": "^0.14.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.14.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.21"
+  }
+}
