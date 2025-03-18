@@ -45,7 +45,7 @@ async function seedAdminUser() {
         const adminUser = userRepository.create({
             email: adminEmail,
             nome: "Administrador",
-            apelido: "admin",
+            apelido: "admin1",
             senha: bcrypt.hashSync(adminPassword, 8),
             role: Role.ADMIN,
         });
