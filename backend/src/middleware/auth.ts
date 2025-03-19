@@ -22,5 +22,6 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
     next(); // Certifique-se de chamar next()
   } catch (error) {
     res.status(403).json({ message: "Token inválido ou expirado." });
+    return;
   }
 };

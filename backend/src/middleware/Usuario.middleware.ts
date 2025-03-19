@@ -5,54 +5,107 @@ import { sendError } from "../utils/response";
 
 // Middleware para verificar se o usuário é admin
 export const authorizeAdmin = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user || req.user.role !== "admin") {
-        res.status(403).json({ message: "Acesso negado. Somente administradores podem realizar essa ação." });
+  console.debug("[authorizeAdmin] Iniciando verificação de admin");
+  
+  try {
+    if (!req.user) {
+      console.debug("[authorizeAdmin] Usuário não autenticado");
+      return sendError(res, {
+        code: "unauthenticated",
+        message: "Autenticação necessária",
+        status: 401
+      });
     }
 
-    try {
-        const userRepository = AppDataSource.getRepository(Usuario);
-        const user = await userRepository.findOneBy({ id: req.user?.id });
+    const userRepository = AppDataSource.getRepository(Usuario);
+    console.debug("[authorizeAdmin] Buscando usuário no banco:", req.user.id);
+    
+    const user = await userRepository.findOne({ 
+      where: { id: req.user.id },
+      select: ["id", "role"]
+    });
 
-        if (!user || user.deletado) {
-            sendError(res, "Usuário não encontrado ou desativado.", 404);
-        }
-
-        if (user!.role !== "admin") {
-            sendError(res, "Acesso negado. Somente administradores podem realizar essa ação.", 403);
-        }
-
-        next();
-    } catch (error) {
-        sendError(res, "Erro ao verificar permissões.", 500);
+    if (!user) {
+      console.debug("[authorizeAdmin] Usuário não encontrado ou desativado:", req.user.id);
+      return sendError(res, {
+        code: "user_not_found",
+        message: "Usuário não encontrado",
+        status: 404
+      });
     }
+
+    if (user.role !== "admin") {
+      console.debug(`[authorizeAdmin] Acesso negado para usuário ${user.id} com role ${user.role}`);
+      return sendError(res, {
+        code: "admin_required",
+        message: "Acesso restrito a administradores",
+        status: 403
+      });
+    }
+
+    console.debug("[authorizeAdmin] Usuário autorizado como admin:", user.id);
     next();
+  } catch (error) {
+    console.error("[authorizeAdmin] Erro na verificação:", error);
+    sendError(res, {
+      code: "authorization_error",
+      message: "Falha na verificação de permissões",
+      status: 500,
+      details: error instanceof Error ? error.message : undefined
+    });
+  }
 };
 
-// Middleware para verificar se o usuário está acessando seus próprios dados ou é admin
-export const authorizeUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Middleware para verificar acesso ao próprio recurso ou admin
+export const authorizeUser = async (req: Request, res: Response, next: NextFunction) => {
+  console.debug("[authorizeUser] Iniciando verificação de acesso");
+  
+  try {
     const { id } = req.params;
-
-    if (!req.user || (req.user.role !== "admin" && req.user.id !== id)) {
-        res.status(403).json({ message: "Acesso negado. Você não tem permissão para realizar esta ação." });
+    if (!req.user) {
+      console.debug("[authorizeUser] Usuário não autenticado");
+      return sendError(res, {
+        code: "unauthenticated",
+        message: "Autenticação necessária",
+        status: 401
+      });
     }
 
-    try {
-        const userRepository = AppDataSource.getRepository(Usuario);
-        // Consulta o usuário logado (informação atualizada do banco)
-        const user = await userRepository.findOneBy({ id: req.user?.id });
+    const userRepository = AppDataSource.getRepository(Usuario);
+    console.debug("[authorizeUser] Buscando usuário no banco:", req.user.id);
+    
+    const user = await userRepository.findOne({ 
+      where: { id: req.user.id },
+      select: ["id", "role"]
+    });
 
-        if (!user || user.deletado) {
-            sendError(res, "Usuário não encontrado ou desativado.", 404);
-        }
-
-        // Permite se o usuário for admin ou se o id na URL for o mesmo do usuário logado
-        if (user!.role !== "admin" && user!.id !== id) {
-            sendError(res, "Acesso negado. Você não tem permissão para realizar esta ação.", 403);
-        }
-
-        next();
-    } catch (error) {
-        sendError(res, "Erro ao verificar permissões.", 500);
+    if (!user) {
+      console.debug("[authorizeUser] Usuário não encontrado ou desativado:", req.user.id);
+      return sendError(res, {
+        code: "user_not_found",
+        message: "Usuário não encontrado",
+        status: 404
+      });
     }
+
+    if (user.role !== "admin" && user.id !== id) {
+      console.debug(`[authorizeUser] Acesso negado para usuário ${user.id} ao recurso ${id}`);
+      return sendError(res, {
+        code: "access_denied",
+        message: "Acesso não autorizado ao recurso",
+        status: 403
+      });
+    }
+
+    console.debug("[authorizeUser] Acesso autorizado para:", user.id);
     next();
+  } catch (error) {
+    console.error("[authorizeUser] Erro na verificação:", error);
+    sendError(res, {
+      code: "authorization_error",
+      message: "Falha na verificação de permissões",
+      status: 500,
+      details: error instanceof Error ? error.message : undefined
+    });
+  }
 };

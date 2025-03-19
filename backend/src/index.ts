@@ -1,3 +1,4 @@
+import "dotenv/config";
 import "reflect-metadata";
 import express from "express";
 import cors from "cors";
@@ -35,8 +36,8 @@ AppDataSource.initialize()
     .catch((error) => console.error("Erro ao conectar ao banco de dados:", error));
 
 async function seedAdminUser() {
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123"; // Altere para uma senha segura!
+    const adminEmail = process.env.ADMIN_EMAIL!;
+    const adminPassword = process.env.ADMIN_PASSWORD!; // Altere para uma senha segura!
 
     const userRepository = AppDataSource.getRepository(Usuario);
     const existingAdmin = await userRepository.findOneBy({ email: adminEmail });

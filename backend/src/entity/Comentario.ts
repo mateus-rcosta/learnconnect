@@ -5,6 +5,7 @@ import {
     ManyToOne,
     CreateDateColumn,
     UpdateDateColumn,
+    DeleteDateColumn,
 } from "typeorm";
 import { Usuario } from "./Usuario";
 import { Material } from "./Material";
@@ -22,6 +23,9 @@ export class Comentario {
 
     @UpdateDateColumn()
     data_atualizacao!: Date;
+
+    @DeleteDateColumn({ name: "data_deletado" })
+    data_deletado!: Date | null;
 
     // Muitos comentários pertencem a um usuário (N:1)
     @ManyToOne(() => Usuario, (usuario) => usuario.comentarios)

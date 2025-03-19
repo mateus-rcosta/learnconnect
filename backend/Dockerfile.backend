@@ -4,6 +4,9 @@ WORKDIR /app
 
 # Copia apenas os arquivos necessários para instalar as dependências
 COPY package*.json tsconfig.json ./
+# Copia o dotenv 
+COPY .env ./
+
 RUN npm install
 
 # Copia o restante do código
@@ -19,6 +22,7 @@ WORKDIR /app
 # Copia apenas os arquivos necessários para rodar a aplicação
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.env ./
 
 # Script de espera para o banco ficar disponivel
 COPY wait-for-it.sh /usr/local/bin/wait-for-it.sh

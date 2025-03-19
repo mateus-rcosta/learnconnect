@@ -6,6 +6,7 @@ import {
     OneToMany,
     CreateDateColumn,
     UpdateDateColumn,
+    DeleteDateColumn,
 } from "typeorm";
 import { Usuario } from "./Usuario";
 import { Comentario } from "./Comentario";
@@ -42,6 +43,9 @@ export class Material {
 
     @UpdateDateColumn()
     data_atualizacao!: Date;
+
+    @DeleteDateColumn({ name: "data_deletado" })
+    data_deletado!: Date | null;
 
     // Muitos materiais pertencem a um usuário (N:1)
     @ManyToOne(() => Usuario, (usuario) => usuario.materiais)

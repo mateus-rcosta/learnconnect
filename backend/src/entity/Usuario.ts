@@ -5,6 +5,7 @@ import {
     OneToMany,
     CreateDateColumn,
     UpdateDateColumn,
+    DeleteDateColumn,
 } from "typeorm";
 import { Material } from "./Material";
 import { Comentario } from "./Comentario";
@@ -46,13 +47,8 @@ export class Usuario {
     @UpdateDateColumn()
     data_atualizacao!: Date;
 
-    // Soft-delete
-    @Column({ default: false })
-    deletado!: boolean;
-
-    // Data do soft-delete
-    @Column({ type: "timestamp", nullable: true })
-    data_deletado?: Date;
+    @DeleteDateColumn({ name: "data_deletado" })
+    data_deletado!: Date | null;
 
     // Relacionamento 1:N -> Um usuário pode ter vários materiais
     @OneToMany(() => Material, (material) => material.usuario)
