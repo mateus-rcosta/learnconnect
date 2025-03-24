@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { Material } from "./Material";
 import { Comentario } from "./Comentario";
+import { Like } from "./Like";
 
 export enum Role {
     ADMIN = "admin",
@@ -29,6 +30,18 @@ export class Usuario {
 
     @Column({ unique: true })
     apelido!: string;
+
+    @Column()
+    avatar_url!: string;
+
+    @Column()
+    banner_url!: string;
+
+    @Column()
+    bio!: string;
+
+    @Column()
+    mfa!: boolean;
 
     @Column()
     senha!: string;
@@ -57,4 +70,7 @@ export class Usuario {
     // Relacionamento 1:N -> Um usuário pode ter vários comentários
     @OneToMany(() => Comentario, (comentario) => comentario.usuario)
     comentarios!: Comentario[];
+
+    @OneToMany(() => Like, (like) => like.usuario)
+    likes!: Like[];
 }

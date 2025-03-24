@@ -2,56 +2,58 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    ManyToOne,
-    OneToMany,
     CreateDateColumn,
     UpdateDateColumn,
+    ManyToOne,
+    OneToMany,
     DeleteDateColumn,
-} from "typeorm";
-import { Usuario } from "./Usuario";
-import { Comentario } from "./Comentario";
-
-export enum Flag {
-    APROVADO = "aprovado",
-    REPROVADO = "reprovado",
-    ANALISE = "analise",
-}
-
-
-@Entity({ name: "materiais" })
-export class Material {
+  } from "typeorm";
+  import { Usuario } from "./Usuario";
+  import { Comentario } from "./Comentario";
+  import { AnexoMaterial } from "./AnexoMaterial";
+  import { Like } from "./Like";
+  
+  @Entity({ name: "materiais" })
+  export class Material {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
-
-    @Column()
+  
+    @Column({ type: "text" })
     descricao!: string;
-
+  
     @Column()
     categoria!: string;
-
-    @Column()
+  
+    @Column({ type: "text" })
     conteudo!: string;
-
-    @Column({ type: "enum", enum: Flag, default: Flag.ANALISE })
-    flag!: Flag;
-
+  
+    @Column({ default: "analise" })
+    flag!: string;
+  
+    @Column({ nullable: true })
+    thumbnail_url?: string;
+  
     @Column({ type: "date", nullable: true })
-    data_aprovacao!: Date;
-
+    data_aprovacao!: Date | null;
+  
     @CreateDateColumn()
     data_criacao!: Date;
-
+  
     @UpdateDateColumn()
     data_atualizacao!: Date;
-
+  
+    @ManyToOne(() => Usuario, (usuario) => usuario.materiais, { onDelete: "CASCADE" })  
+    usuario!: Usuario;
+  
     @DeleteDateColumn({ name: "data_deletado" })
     data_deletado!: Date | null;
-
-    // Muitos materiais pertencem a um usuário (N:1)
-    @ManyToOne(() => Usuario, (usuario) => usuario.materiais)
-    usuario!: Usuario;
-
-    // Um material pode ter vários comentários (1:N)
+  
     @OneToMany(() => Comentario, (comentario) => comentario.material)
     comentarios!: Comentario[];
-}
+  
+    @OneToMany(() => AnexoMaterial, (anexo) => anexo.material)
+    anexos!: AnexoMaterial[];
+  
+    @OneToMany(() => Like, (like) => like.material)
+    likes!: Like[];
+  }

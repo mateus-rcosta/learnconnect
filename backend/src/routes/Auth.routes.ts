@@ -6,6 +6,7 @@ const router = Router();
 // Rota de login
 router.post("/login", AuthController.login);
 
-// Se desejar, pode adicionar uma rota de cadastro (signup) aqui
+// Rota de cadastro
+router.post("/cadastrar", AuthController.createUser);
 
 export default router;

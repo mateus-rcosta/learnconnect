@@ -3,6 +3,8 @@ import { DataSource } from "typeorm";
 import { Usuario } from "../entity/Usuario";
 import { Material } from "../entity/Material";
 import { Comentario } from "../entity/Comentario";
+import { AnexoMaterial } from "../entity/AnexoMaterial";
+import { Like } from "../entity/Like"; 
 import "dotenv/config";
 
 export const AppDataSource = new DataSource({
@@ -14,7 +16,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: false, 
   logging: false,
-  entities: [Usuario, Material, Comentario],
+  entities: [Usuario, Material, Comentario, Like, AnexoMaterial],
   migrations: [],
   subscribers: [],
 });

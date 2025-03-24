@@ -5,6 +5,10 @@ import cors from "cors";
 import { AppDataSource } from "./config/ormconfig"; // ou "./data-source", conforme sua organização
 import usuarioRoutes from "./routes/Usuario.routes";
 import authRoutes from "./routes/Auth.routes";
+import settingRoutes from "./routes/UsuarioSettings.routes";
+import comentarioRoutes from "./routes/Comentario.routes";
+import materialRoutes from "./routes/Materiais.routes";
+import likeRoutes from "./routes/Like.routes";
 import bcrypt from "bcrypt";
 import { Role, Usuario } from "./entity/Usuario";
 
@@ -20,6 +24,10 @@ app.use(express.json());
 // Rotas da aplicação
 app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/settings", settingRoutes);
+app.use("/api/comentario", comentarioRoutes);
+app.use("/api/material", materialRoutes);
+app.use("/api/like", likeRoutes);
 
 // Defina a porta do servidor
 const PORT = process.env.PORT || 3000;
@@ -37,7 +45,7 @@ AppDataSource.initialize()
 
 async function seedAdminUser() {
     const adminEmail = process.env.ADMIN_EMAIL!;
-    const adminPassword = process.env.ADMIN_PASSWORD!; // Altere para uma senha segura!
+    const adminPassword = process.env.ADMIN_PASSWORD!; 
 
     const userRepository = AppDataSource.getRepository(Usuario);
     const existingAdmin = await userRepository.findOneBy({ email: adminEmail });
@@ -56,3 +64,5 @@ async function seedAdminUser() {
         console.log("Usuário admin já existe.");
     }
 }
+
+export default app;

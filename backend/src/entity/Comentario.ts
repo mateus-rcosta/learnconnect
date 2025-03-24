@@ -2,9 +2,9 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    ManyToOne,
     CreateDateColumn,
     UpdateDateColumn,
+    ManyToOne,
     DeleteDateColumn,
 } from "typeorm";
 import { Usuario } from "./Usuario";
@@ -15,7 +15,7 @@ export class Comentario {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
-    @Column()
+    @Column({ type: "text" })
     conteudo!: string;
 
     @CreateDateColumn()
@@ -24,14 +24,12 @@ export class Comentario {
     @UpdateDateColumn()
     data_atualizacao!: Date;
 
-    @DeleteDateColumn({ name: "data_deletado" })
-    data_deletado!: Date | null;
-
-    // Muitos comentários pertencem a um usuário (N:1)
-    @ManyToOne(() => Usuario, (usuario) => usuario.comentarios)
+    @ManyToOne(() => Usuario, (usuario) => usuario.comentarios, { onDelete: "CASCADE" })
     usuario!: Usuario;
 
-    // Muitos comentários pertencem a um material (N:1)
-    @ManyToOne(() => Material, (material) => material.comentarios)
+    @ManyToOne(() => Material, (material) => material.comentarios, { onDelete: "CASCADE" })
     material!: Material;
+
+    @DeleteDateColumn({ name: "data_deletado" })
+    data_deletado!: Date | null;
 }
