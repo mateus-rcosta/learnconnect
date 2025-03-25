@@ -7,7 +7,7 @@
     "test": "jest --config src/__tests__/jest.config.ts",
     "test:watch": "jest --watch",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "npm run test && tsc"
+    "build": "tsc"
   },
   "keywords": [
     "learn, connect, backend"

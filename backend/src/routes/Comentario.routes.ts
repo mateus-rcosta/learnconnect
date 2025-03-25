@@ -9,13 +9,13 @@ const router = Router();
  * 1) POST /api/comentarios
  *    Adiciona um comentário a uma postagem
  */
-router.post("/", authenticateJWT, ComentarioController.createComentario);
+router.post("/:materialId", authenticateJWT, ComentarioController.createComentario);
 
 /**
  * 2) GET /api/comentarios/:postId
  *    Obtém os comentários de uma postagem
  */
-router.get("/:postId", ComentarioController.getComentariosByPost);
+router.get("/:materialId", ComentarioController.getComentariosByPost);
 
 /**
  * 3) PUT /api/comentarios/:id

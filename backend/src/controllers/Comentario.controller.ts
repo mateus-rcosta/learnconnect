@@ -9,14 +9,15 @@ export class ComentarioController {
     private static materialRepo = AppDataSource.getRepository(Material);
 
     /**
-     * POST /api/comentario
+     * POST /api/comentario/:materialId
      * Adiciona um comentário a uma postagem (material)
      * Body esperado: { materialId, conteudo }
      */
     static createComentario = async (req: Request, res: Response): Promise<void> => {
         try {
             const loggedUser = req.user as { id: string };
-            const { materialId, conteudo } = req.body;
+            const { materialId } = req.params;
+            const { conteudo } = req.body;
 
             // Verifica se o material existe
             const material = await this.materialRepo.findOneBy({ id: materialId });
@@ -35,8 +36,8 @@ export class ComentarioController {
                 material: { id: materialId },
             });
 
-            const salvo = await this.comentarioRepo.save(novoComentario);
-            return sendSuccess(res, salvo, 201);
+            await this.comentarioRepo.save(novoComentario);
+            return sendSuccess(res, { message: "Comentário criado com sucesso" }, 201);
         } catch (error: any) {
             return sendError(res, {
                 code: "comentario_creation_failed",
@@ -53,21 +54,19 @@ export class ComentarioController {
      */
     static getComentariosByPost = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { postId, page = "1", limit = "10", usuarioId, order = "DESC" } = req.query;
-    
-            // Validate postId
-            if (!postId || typeof postId !== "string") {
+            const { materialId } = req.params;
+            const { page = "1", limit = "10", order = "DESC" } = req.query;
+
+            if (!materialId || typeof materialId !== "string") {
                 return sendError(res, {
                     code: "invalid_query",
-                    message: "O parâmetro 'postId' é obrigatório e deve ser uma string válida.",
+                    message: "O parâmetro 'materialId' é obrigatório e deve ser uma string válida.",
                     status: 400,
                 });
             }
-    
-            // Validate pagination params
+
             const pageNumber = parseInt(page as string, 10);
             const limitNumber = parseInt(limit as string, 10);
-    
             if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber < 1 || limitNumber < 1) {
                 return sendError(res, {
                     code: "invalid_pagination",
@@ -75,9 +74,9 @@ export class ComentarioController {
                     status: 400,
                 });
             }
-    
-            // Check if the material exists
-            const material = await this.materialRepo.findOneBy({ id: postId });
+
+            // Verifica se o material (postagem) existe
+            const material = await this.materialRepo.findOneBy({ id: materialId });
             if (!material) {
                 return sendError(res, {
                     code: "material_not_found",
@@ -85,26 +84,26 @@ export class ComentarioController {
                     status: 404,
                 });
             }
-    
-            // Build the query filters
-            const whereCondition: any = { material: { id: postId } };
-            if (usuarioId) whereCondition.usuario = { id: usuarioId };
-    
-            // Fetch comments with filters and pagination
-            const [comentarios, total] = await this.comentarioRepo.findAndCount({
-                where: whereCondition,
-                relations: ["usuario"],
-                order: { data_criacao: order === "ASC" ? "ASC" : "DESC" },
-                skip: (pageNumber - 1) * limitNumber,
-                take: limitNumber,
-            });
-    
-            return sendSuccess(res, {
-                total,
-                page: pageNumber,
-                limit: limitNumber,
-                comentarios,
-            });
+
+            // Construção da query com os campos desejados, incluindo o ID do comentário
+            const [comentarios, total] = await this.comentarioRepo
+                .createQueryBuilder("com")
+                .leftJoin("com.usuario", "usuario")
+                .select([
+                    "com.id", // Incluído para evitar o erro com distinctAlias.com_id
+                    "com.conteudo",
+                    "com.data_criacao",
+                    "com.data_atualizacao",
+                    "usuario.nome",
+                    "usuario.apelido",
+                ])
+                .where("com.material = :id", { id: materialId })
+                .orderBy("com.data_criacao", order === "ASC" ? "ASC" : "DESC")
+                .skip((pageNumber - 1) * limitNumber)
+                .take(limitNumber)
+                .getManyAndCount();
+
+            return sendSuccess(res, { total, page: pageNumber, limit: limitNumber, comentarios });
         } catch (error: any) {
             return sendError(res, {
                 code: "comentarios_fetch_failed",
@@ -148,9 +147,8 @@ export class ComentarioController {
             }
 
             comentario.conteudo = conteudo ?? comentario.conteudo;
-
-            const atualizado = await this.comentarioRepo.save(comentario);
-            return sendSuccess(res, atualizado);
+            await this.comentarioRepo.save(comentario);
+            return sendSuccess(res, { message: "Comentário atualizado com sucesso" });
         } catch (error: any) {
             return sendError(res, {
                 code: "comentario_update_failed",
@@ -208,7 +206,6 @@ export class ComentarioController {
      * PUT /api/comentario/admin/:id - Admin pode modificar o conteúdo do comentário
      * DELETE /api/comentario/admin/:id - Admin pode excluir o comentário
      */
-
     static adminUpdateComentario = async (req: Request, res: Response): Promise<void> => {
         try {
             const { id } = req.params;
@@ -224,8 +221,8 @@ export class ComentarioController {
             }
 
             comentario.conteudo = conteudo ?? comentario.conteudo;
-            const atualizado = await this.comentarioRepo.save(comentario);
-            return sendSuccess(res, atualizado);
+            await this.comentarioRepo.save(comentario);
+            return sendSuccess(res, { message: "Comentário atualizado com sucesso pelo admin" });
         } catch (error: any) {
             return sendError(res, {
                 code: "comentario_admin_update_failed",

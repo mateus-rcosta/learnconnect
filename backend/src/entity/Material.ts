@@ -7,6 +7,7 @@ import {
     ManyToOne,
     OneToMany,
     DeleteDateColumn,
+    JoinColumn,
   } from "typeorm";
   import { Usuario } from "./Usuario";
   import { Comentario } from "./Comentario";
@@ -17,7 +18,10 @@ import {
   export class Material {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
-  
+    
+    @Column()
+    titulo!: string;
+
     @Column({ type: "text" })
     descricao!: string;
   
@@ -42,7 +46,8 @@ import {
     @UpdateDateColumn()
     data_atualizacao!: Date;
   
-    @ManyToOne(() => Usuario, (usuario) => usuario.materiais, { onDelete: "CASCADE" })  
+    @ManyToOne(() => Usuario, (usuario) => usuario.materiais, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "usuario_id" })  
     usuario!: Usuario;
   
     @DeleteDateColumn({ name: "data_deletado" })

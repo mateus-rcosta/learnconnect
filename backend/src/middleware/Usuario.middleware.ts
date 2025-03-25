@@ -61,7 +61,6 @@ export const authorizeUser = async (req: Request, res: Response, next: NextFunct
   console.debug("[authorizeUser] Iniciando verificação de acesso");
   
   try {
-    const { id } = req.params;
     if (!req.user) {
       console.debug("[authorizeUser] Usuário não autenticado");
       return sendError(res, {
@@ -85,15 +84,6 @@ export const authorizeUser = async (req: Request, res: Response, next: NextFunct
         code: "user_not_found",
         message: "Usuário não encontrado",
         status: 404
-      });
-    }
-
-    if (user.role !== "admin" && user.id !== id) {
-      console.debug(`[authorizeUser] Acesso negado para usuário ${user.id} ao recurso ${id}`);
-      return sendError(res, {
-        code: "access_denied",
-        message: "Acesso não autorizado ao recurso",
-        status: 403
       });
     }
 

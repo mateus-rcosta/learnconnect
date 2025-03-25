@@ -3,6 +3,7 @@ import {
     PrimaryGeneratedColumn,
     Column,
     ManyToOne,
+    JoinColumn,
   } from "typeorm";
   import { Material } from "./Material";
   
@@ -11,7 +12,8 @@ import {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
   
-    @ManyToOne(() => Material, (material) => material.anexos, { onDelete: "CASCADE" })  
+    @ManyToOne(() => Material, (material) => material.anexos, { onDelete: "CASCADE" }) 
+    @JoinColumn({ name: "material_id" })   
     material!: Material;
   
     @Column({ name: "arquivo_url" })  

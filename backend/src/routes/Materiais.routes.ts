@@ -23,8 +23,6 @@ router.delete("/:id", authenticateJWT, MaterialController.deleteMaterial);
 // 6. GET /api/materiais/:id/anexos  - Anexos de um material
 router.get("/:id/anexos", MaterialController.getAnexos);
 
-// 7. GET /api/materiais/search - Busca por titulo (descricao), flag, categoria
-router.get("/search", MaterialController.searchMateriais);
 
 // 8. Rotas exclusivas de admin
 router.put("/admin/:id", authenticateJWT, authorizeAdmin, MaterialController.adminUpdateMaterial);

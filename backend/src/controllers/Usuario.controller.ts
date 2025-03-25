@@ -3,7 +3,8 @@ import * as bcrypt from "bcrypt";
 import { Role, Usuario } from "../entity/Usuario";
 import { AppDataSource } from "../config/ormconfig";
 import { sendError, sendSuccess } from "../utils/response";
-import { Not } from "typeorm";
+import { ILike, Not } from "typeorm";
+import { randomUUID } from "crypto";
 
 
 type SafeUserData = {
@@ -57,7 +58,7 @@ export class UserController {
       const { q = "", page = 1, limit = 10 } = req.query;
       const [users, total] = await this.userRepo.findAndCount({
         select: ["nome", "apelido"],
-        where: { apelido: Not(`%${q}%`) },
+        where: { apelido: ILike(`%${q}%`)  },
         skip: (Number(page) - 1) * Number(limit),
         take: Number(limit)
       });
@@ -137,12 +138,35 @@ export class UserController {
   static deleteUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const user = await this.userRepo.findOneBy({ id: req.params.id });
-      if (!user) return sendError(res, { code: "user_not_found", message: "Usuário não encontrado", status: 404 });
-
+  
+      if (!user) {
+        return sendError(res, {
+          code: "user_not_found",
+          message: "Usuário não encontrado",
+          status: 404
+        });
+      }
+  
+      // Gera um sufixo único (timestamp + 4 caracteres aleatórios)
+      const suffix = `${Date.now()}-${randomUUID().slice(0, 4)}`;
+  
+      // Modifica apelido e email antes de excluir
+      user.apelido = `${user.apelido}_deleted_${suffix}`;
+      user.email = `${user.email}_deleted_${suffix}`;
+  
+      await this.userRepo.save(user); // Salva as alterações
+  
+      // Agora faz o soft delete
       await this.userRepo.softDelete(user.id);
+  
       sendSuccess(res, { id: user.id });
     } catch (error: any) {
-      sendError(res, { code: "user_deletion_failed", message: "Falha ao excluir usuário", status: 500, details: error.message });
+      sendError(res, {
+        code: "user_deletion_failed",
+        message: "Falha ao excluir usuário",
+        status: 500,
+        details: error.message
+      });
     }
   };
 }

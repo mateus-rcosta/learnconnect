@@ -16,18 +16,21 @@ export class LikeController {
      */
     static toggleLike = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { postId, usuarioId } = req.body;
+            // Extrai o id do usuário do req.user
+            const { id: usuarioId } = req.user as { id: string };
+            // Extrai o materialId dos parâmetros
+            const { materialId } = req.params;
 
-            if (!postId || !usuarioId) {
+            if (!materialId || !usuarioId) {
                 return sendError(res, {
                     code: "invalid_data",
-                    message: "Os campos 'postId' e 'usuarioId' são obrigatórios.",
+                    message: "Os campos 'materialId' e 'usuarioId' são obrigatórios.",
                     status: 400,
                 });
             }
 
             // Verifica se o material existe
-            const material = await this.materialRepo.findOneBy({ id: postId });
+            const material = await this.materialRepo.findOneBy({ id: materialId });
             if (!material) {
                 return sendError(res, {
                     code: "material_not_found",
@@ -36,19 +39,9 @@ export class LikeController {
                 });
             }
 
-            // Verifica se o usuário existe
-            const usuario = await this.usuarioRepo.findOneBy({ id: usuarioId });
-            if (!usuario) {
-                return sendError(res, {
-                    code: "user_not_found",
-                    message: "Usuário não encontrado.",
-                    status: 404,
-                });
-            }
-
-            // Verifica se já existe um like desse usuário na postagem
+            // Verifica se já existe um like deste usuário na postagem
             const existingLike = await this.likeRepo.findOne({
-                where: { material: { id: postId }, usuario: { id: usuarioId } },
+                where: { material: { id: materialId }, usuario: { id: usuarioId } },
             });
 
             if (existingLike) {
@@ -57,7 +50,7 @@ export class LikeController {
                 return sendSuccess(res, { message: "Curtida removida com sucesso!" });
             } else {
                 // Caso contrário, adiciona (curtir)
-                const newLike = this.likeRepo.create({ material, usuario });
+                const newLike = this.likeRepo.create({ material, usuario: { id: usuarioId } });
                 await this.likeRepo.save(newLike);
                 return sendSuccess(res, { message: "Curtida adicionada com sucesso!" });
             }
@@ -77,9 +70,9 @@ export class LikeController {
      */
     static getLikesByPost = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { postId } = req.params;
+            const { materialId } = req.params;
 
-            if (!postId) {
+            if (!materialId) {
                 return sendError(res, {
                     code: "invalid_data",
                     message: "O parâmetro 'postId' é obrigatório.",
@@ -88,7 +81,7 @@ export class LikeController {
             }
 
             // Verifica se o material existe
-            const material = await this.materialRepo.findOneBy({ id: postId });
+            const material = await this.materialRepo.findOneBy({ id: materialId });
             if (!material) {
                 return sendError(res, {
                     code: "material_not_found",
@@ -99,7 +92,7 @@ export class LikeController {
 
             // Conta o número de curtidas
             const totalLikes = await this.likeRepo.count({
-                where: { material: { id: postId } },
+                where: { material: { id: materialId } },
             });
 
             return sendSuccess(res, { totalLikes });
