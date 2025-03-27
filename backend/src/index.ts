@@ -9,6 +9,7 @@ import settingRoutes from "./routes/UsuarioSettings.routes";
 import comentarioRoutes from "./routes/Comentario.routes";
 import materialRoutes from "./routes/Materiais.routes";
 import likeRoutes from "./routes/Like.routes";
+import categoriaRoutes from "./routes/Categoria.route";
 import bcrypt from "bcrypt";
 import { Role, Usuario } from "./entity/Usuario";
 
@@ -28,6 +29,7 @@ app.use("/api/settings", settingRoutes);
 app.use("/api/comentario", comentarioRoutes);
 app.use("/api/material", materialRoutes);
 app.use("/api/like", likeRoutes);
+app.use("/api/categoria", categoriaRoutes);
 
 // Defina a porta do servidor
 const PORT = process.env.PORT || 3000;

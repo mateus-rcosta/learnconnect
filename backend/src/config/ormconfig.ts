@@ -6,6 +6,7 @@ import { Comentario } from "../entity/Comentario";
 import { AnexoMaterial } from "../entity/AnexoMaterial";
 import { Like } from "../entity/Like"; 
 import "dotenv/config";
+import { Categoria } from "../entity/Categoria";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -16,7 +17,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: false, 
   logging: false,
-  entities: [Usuario, Material, Comentario, Like, AnexoMaterial],
+  entities: [Usuario, Material, Comentario, Like, AnexoMaterial, Categoria],
   migrations: [],
   subscribers: [],
 });

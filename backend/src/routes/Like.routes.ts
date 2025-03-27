@@ -4,7 +4,7 @@ import { authenticateJWT } from "../middleware/auth";
 
 const router = Router();
 
-router.post("/:materialId", authenticateJWT, LikeController.toggleLike);  // Curtir ou descurtir
-router.get("/:materialId", authenticateJWT, LikeController.getLikesByPost); // Obter total de curtidas
+router.post("/:materialId", authenticateJWT, LikeController.toggleLike);  
+router.get("/:materialId", authenticateJWT, LikeController.getLikesByPost); 
 
 export default router;

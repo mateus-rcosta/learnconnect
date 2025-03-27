@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../config/ormconfig";
 import { Material } from "../entity/Material";
 import { sendError, sendSuccess } from "../utils/response";
+import { Categoria } from "../entity/Categoria";
 
 export class MaterialController {
   private static materialRepo = AppDataSource.getRepository(Material);
+  private static categoriaRepo = AppDataSource.getRepository(Categoria);
 
   /**
    * GET /api/materiais
@@ -16,17 +18,19 @@ export class MaterialController {
       const limit = Number(req.query.limit) || 10;
       const skip = (page - 1) * limit;
       const { q, flag, categoria } = req.query;
+
       const queryBuilder = this.materialRepo.createQueryBuilder("mat")
-        .leftJoin("mat.usuario", "usuario")
+        .leftJoinAndSelect("mat.usuario", "usuario")
+        .leftJoinAndSelect("mat.categoria", "categoria")
         .select([
           "mat.id",
           "mat.titulo",
           "mat.descricao",
-          "mat.categoria",
           "mat.flag",
           "mat.data_criacao",
           "usuario.nome",
-          "usuario.apelido"
+          "usuario.apelido",
+          "categoria.nome"
         ])
         .orderBy("mat.data_criacao", "DESC")
         .skip(skip)
@@ -34,10 +38,10 @@ export class MaterialController {
         
       if (q) queryBuilder.andWhere("mat.titulo ILIKE :q", { q: `%${q}%` });
       if (flag) queryBuilder.andWhere("mat.flag = :flag", { flag });
-      if (categoria) queryBuilder.andWhere("mat.categoria = :categoria", { categoria });
-  
+      if (categoria) queryBuilder.andWhere("categoria.nome ILIKE :categoria", { categoria: `%${categoria}%` });
+
       const [materiais, total] = await queryBuilder.getManyAndCount();
-  
+
       return sendSuccess(res, { data: materiais, total, page, limit });
     } catch (error: any) {
       return sendError(res, {
@@ -58,10 +62,21 @@ export class MaterialController {
       const loggedUser = req.user as { id: string };
       const { titulo, descricao, categoria, conteudo, thumbnail_url } = req.body;
 
+       // Busca a categoria pelo nome
+       const categoriaEntity = categoria ? await this.categoriaRepo.findOne({ where: { nome: categoria } }) : null;
+
+       if (categoria && !categoriaEntity) {
+         return sendError(res, {
+           code: "categoria_not_found",
+           message: "Categoria informada não existe.",
+           status: 400,
+         });
+       }
+
       const novoMaterial = this.materialRepo.create({
         titulo,
         descricao,
-        categoria,
+        categoria: {id:categoriaEntity?.id},
         conteudo,
         thumbnail_url,
         usuario: { id: loggedUser.id },
@@ -90,19 +105,21 @@ export class MaterialController {
       const material = await this.materialRepo
         .createQueryBuilder("mat")
         .leftJoinAndSelect("mat.usuario", "usuario")
+        .leftJoinAndSelect("mat.categoria", "categoria")
         .select([
           "mat.id",
           "mat.titulo",
           "mat.descricao",
-          "mat.categoria",
           "mat.conteudo",
           "mat.flag",
           "mat.thumbnail_url",
           "mat.data_aprovacao",
           "mat.data_criacao",
-          "mat.data_atualizacao"
+          "mat.data_atualizacao",
+          "usuario.nome",
+          "usuario.apelido",
+          "categoria.nome"
         ])
-        .addSelect(["usuario.nome", "usuario.apelido"])
         .where("mat.id = :id", { id })
         .getOne();
   
@@ -135,10 +152,23 @@ export class MaterialController {
       const { id } = req.params;
       const { titulo, descricao, categoria, conteudo, flag, thumbnail_url } = req.body;
 
-      const material = await this.materialRepo.findOne({ where: { id }, relations: ["usuario"] });
+      const material = await this.materialRepo.findOne({ where: { id }, relations: ["usuario", "categoria"] });
 
       if (!material) return sendError(res, { code: "material_not_found", message: "Material não encontrado", status: 404 });
       if (material.usuario.id !== loggedUser.id) return sendError(res, { code: "unauthorized", message: "Você não é o autor do material", status: 403 });
+
+      // Atualiza a categoria se informado
+      if (categoria) {
+        const categoriaEntity = await this.categoriaRepo.findOne({ where: { nome: categoria } });
+        if (!categoriaEntity) {
+          return sendError(res, {
+            code: "categoria_not_found",
+            message: "Categoria informada não existe.",
+            status: 400,
+          });
+        }
+        material.categoria = categoriaEntity;
+      }
 
       Object.assign(material, { titulo, descricao, categoria, conteudo, flag, thumbnail_url });
       await this.materialRepo.save(material);
@@ -226,7 +256,7 @@ export class MaterialController {
       const { id } = req.params;
       const { descricao, conteudo, categoria, thumbnail_url } = req.body;
 
-      const material = await this.materialRepo.findOneBy({ id });
+      const material = await this.materialRepo.findOne({ where: { id }, relations: ["categoria"] });
       if (!material) {
         return sendError(res, {
           code: "material_not_found",
@@ -235,14 +265,23 @@ export class MaterialController {
         });
       }
 
-      // Admin pode alterar livremente
-      material.descricao = descricao ?? material.descricao;
-      material.conteudo = conteudo ?? material.conteudo;
-      material.categoria = categoria ?? material.categoria;
-      material.thumbnail_url = thumbnail_url ?? material.thumbnail_url;
+      // Atualiza a categoria, se informada
+      if (categoria) {
+        const categoriaEntity = await this.categoriaRepo.findOne({ where: { nome: categoria } });
+        if (!categoriaEntity) {
+          return sendError(res, {
+            code: "categoria_not_found",
+            message: "Categoria informada não existe.",
+            status: 400,
+          });
+        }
+        material.categoria = categoriaEntity;
+      }
 
-      const atualizado = await this.materialRepo.save(material);
-      return sendSuccess(res, atualizado);
+      Object.assign(material, { descricao, conteudo, thumbnail_url });
+      await this.materialRepo.save(material);
+
+      return sendSuccess(res, { message: "Material atualizado com sucesso" });
     } catch (error: any) {
       return sendError(res, {
         code: "material_admin_update_failed",

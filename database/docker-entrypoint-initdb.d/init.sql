@@ -19,12 +19,19 @@ CREATE TABLE IF NOT EXISTS usuarios (
     data_deletado TIMESTAMP -- Substitui a coluna 'deletado' por 'data_deletado'
 );
 
+CREATE TABLE IF NOT EXISTS categorias (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome TEXT UNIQUE NOT NULL,
+    descricao TEXT,
+    data_criacao TIMESTAMP NOT NULL DEFAULT now()
+);
+
 -- Criação da tabela "materiais"
 CREATE TABLE IF NOT EXISTS materiais (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     titulo VARCHAR(200) NOT NULL,
     descricao TEXT NOT NULL,
-    categoria VARCHAR(255) NOT NULL, 
+    categoria_id UUID, 
     tags VARCHAR(200), 
     conteudo TEXT NOT NULL,
     flag VARCHAR(50) NOT NULL DEFAULT 'analise',
@@ -32,10 +39,12 @@ CREATE TABLE IF NOT EXISTS materiais (
     data_aprovacao DATE,
     data_criacao TIMESTAMP NOT NULL DEFAULT now(),
     data_atualizacao TIMESTAMP NOT NULL DEFAULT now(),
+    data_deletado TIMESTAMP,
     usuario_id UUID NOT NULL,
-    data_deletado TIMESTAMP, -- Substitui a coluna 'deletado' por 'data_deletado'
     CONSTRAINT fk_usuario_materiais FOREIGN KEY (usuario_Id)
-      REFERENCES usuarios(id) ON DELETE CASCADE
+      REFERENCES usuarios(id) ON DELETE CASCADE,
+    CONSTRAINT fk_categoria_materiais FOREIGN KEY (categoria_id)
+      REFERENCES categorias(id) ON DELETE CASCADE
 );
 
 -- Criação da tabela "comentarios"
@@ -72,3 +81,4 @@ CREATE TABLE IF NOT EXISTS anexos_material (
     arquivo_type VARCHAR(50) NOT NULL,
     FOREIGN KEY (material_Id) REFERENCES materiais(id) ON DELETE CASCADE
 );
+
