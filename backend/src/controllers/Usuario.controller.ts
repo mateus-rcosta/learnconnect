@@ -6,7 +6,6 @@ import { sendError, sendSuccess } from "../utils/response";
 import { ILike, Not } from "typeorm";
 import { randomUUID } from "crypto";
 
-
 type SafeUserData = {
   nome: string;
   apelido: string;
@@ -28,7 +27,6 @@ type AdminUserData = SafeUserData & {
 export class UserController {
   private static userRepo = AppDataSource.getRepository(Usuario);
 
-  // Converte para dados públicos seguros
   private static toSafeUser(user: Usuario): SafeUserData {
     return {
       nome: user.nome,
@@ -39,7 +37,6 @@ export class UserController {
     };
   }
 
-  // Converte para dados completos para admin
   private static toAdminUser(user: Usuario): AdminUserData {
     return {
       ...this.toSafeUser(user),
@@ -58,34 +55,34 @@ export class UserController {
       const { q = "", page = 1, limit = 10 } = req.query;
       const [users, total] = await this.userRepo.findAndCount({
         select: ["nome", "apelido"],
-        where: { apelido: ILike(`%${q}%`)  },
+        where: { apelido: ILike(`%${q}%`) },
         skip: (Number(page) - 1) * Number(limit),
-        take: Number(limit)
+        take: Number(limit),
       });
       sendSuccess(res, { users, total, page, limit });
     } catch (error: any) {
-      sendError(res, { code: "user_search_failed", message: "Falha na busca de usuários", status: 500, details: error.message });
+      sendError(res, {
+        code: "user_search_failed",
+        message: "Falha na busca de usuários",
+        status: 500,
+        details: error.message,
+      });
     }
   };
 
-  // Busca de usuário por apelido (rota pública: /api/users/:apelido)
   static getUserByApelido = async (req: Request, res: Response): Promise<void> => {
     try {
       const { apelido } = req.params;
-      console.debug("[getUserByApelido] Buscando usuário com apelido:", apelido);
       const user = await this.userRepo.findOne({ where: { apelido } });
       if (!user) {
-        console.warn("[getUserByApelido] Usuário não encontrado:", apelido);
         return sendError(res, {
           code: "user_not_found",
           message: "Usuário não encontrado",
           status: 404,
         });
       }
-      console.debug("[getUserByApelido] Usuário encontrado:", user.id);
       return sendSuccess(res, this.toSafeUser(user));
     } catch (error) {
-      console.error("[getUserByApelido] Erro:", error);
       return sendError(res, {
         code: "user_fetch_failed",
         message: "Erro ao buscar usuário",
@@ -94,28 +91,69 @@ export class UserController {
     }
   };
 
-  // Busca de usuário por id para Admin (rota: /api/users/admin/:id)
   static getUserByApelidoForAdmin = async (req: Request, res: Response): Promise<void> => {
     try {
       const { apelido } = req.params;
-      console.debug("[getUserByApelidoForAdmin] Buscando usuário com apelido:", apelido);
       const user = await this.userRepo.findOne({ where: { apelido } });
       if (!user) {
-        console.warn("[getUserByApelidoForAdmin] Usuário não encontrado:", apelido);
         return sendError(res, {
           code: "user_not_found",
           message: "Usuário não encontrado",
           status: 404,
         });
       }
-      console.debug("[getUserByApelidoForAdmin] Usuário encontrado:", user.apelido);
       return sendSuccess(res, this.toAdminUser(user));
     } catch (error) {
-      console.error("[getUserByApelidoForAdmin] Erro:", error);
       return sendError(res, {
         code: "user_fetch_failed",
         message: "Erro ao buscar usuário",
         status: 500,
+      });
+    }
+  };
+
+  static getLoggedUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+      
+      const userId = req.userId;
+
+      if (!userId) {
+        return sendError(res, {
+          code: "unauthorized",
+          message: "Token inválido ou não enviado.",
+          status: 401,
+        });
+      }
+
+      const user = await this.userRepo.findOne({
+        where: { id: userId },
+        withDeleted: true, // ← força a busca mesmo se o TypeORM achar que foi soft-deletado
+      });
+      
+
+      if (!user) {
+        return sendError(res, {
+          code: "user_not_found",
+          message: "Usuário não encontrado.",
+          status: 404,
+        });
+      }
+      
+      // ✅ Retornando email agora também
+      return sendSuccess(res, {
+        nome: user.nome,
+        apelido: user.apelido,
+        bio: user.bio,
+        avatar_url: user.avatar_url,
+        banner_url: user.banner_url,
+        email: user.email,
+      });
+    } catch (error: any) {
+      return sendError(res, {
+        code: "user_fetch_failed",
+        message: "Erro ao buscar informações do usuário.",
+        status: 500,
+        details: error.message,
       });
     }
   };
@@ -123,7 +161,13 @@ export class UserController {
   static updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const user = await this.userRepo.findOneBy({ id: req.params.id });
-      if (!user) return sendError(res, { code: "user_not_found", message: "Usuário não encontrado", status: 404 });
+      if (!user) {
+        return sendError(res, {
+          code: "user_not_found",
+          message: "Usuário não encontrado",
+          status: 404,
+        });
+      }
 
       Object.assign(user, req.body);
       if (req.body.senha) user.senha = bcrypt.hashSync(req.body.senha, 10);
@@ -131,41 +175,41 @@ export class UserController {
 
       sendSuccess(res, this.toSafeUser(updatedUser));
     } catch (error: any) {
-      sendError(res, { code: "user_update_failed", message: "Falha ao atualizar usuário", status: 500, details: error.message });
+      sendError(res, {
+        code: "user_update_failed",
+        message: "Falha ao atualizar usuário",
+        status: 500,
+        details: error.message,
+      });
     }
   };
 
   static deleteUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const user = await this.userRepo.findOneBy({ id: req.params.id });
-  
+
       if (!user) {
         return sendError(res, {
           code: "user_not_found",
           message: "Usuário não encontrado",
-          status: 404
+          status: 404,
         });
       }
-  
-      // Gera um sufixo único (timestamp + 4 caracteres aleatórios)
+
       const suffix = `${Date.now()}-${randomUUID().slice(0, 4)}`;
-  
-      // Modifica apelido e email antes de excluir
       user.apelido = `${user.apelido}_deleted_${suffix}`;
       user.email = `${user.email}_deleted_${suffix}`;
-  
-      await this.userRepo.save(user); // Salva as alterações
-  
-      // Agora faz o soft delete
+
+      await this.userRepo.save(user);
       await this.userRepo.softDelete(user.id);
-  
+
       sendSuccess(res, { id: user.id });
     } catch (error: any) {
       sendError(res, {
         code: "user_deletion_failed",
         message: "Falha ao excluir usuário",
         status: 500,
-        details: error.message
+        details: error.message,
       });
     }
   };

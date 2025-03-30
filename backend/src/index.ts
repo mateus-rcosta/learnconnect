@@ -12,6 +12,8 @@ import likeRoutes from "./routes/Like.routes";
 import categoriaRoutes from "./routes/Categoria.route";
 import bcrypt from "bcrypt";
 import { Role, Usuario } from "./entity/Usuario";
+import { Categoria } from "./entity/Categoria";
+
 
 const app = express();
 
@@ -39,6 +41,7 @@ AppDataSource.initialize()
     .then(async () => {
         console.log("Banco de dados conectado!");
         await seedAdminUser();
+        await seedCategorias();
         app.listen(PORT, () => {
             console.log(`Servidor rodando na porta ${PORT}`);
         });
@@ -66,5 +69,29 @@ async function seedAdminUser() {
         console.log("Usuário admin já existe.");
     }
 }
+
+async function seedCategorias() {
+    const categoriaRepo = AppDataSource.getRepository(Categoria);
+    const count = await categoriaRepo.count();
+
+    if (count === 0) {
+        const categorias = [
+            { nome: "Programação", descricao: "Área de desenvolvimento" },
+            { nome: "Cibersegurança", descricao: "Área de segurança digital" },
+            { nome: "Design", descricao: "Área de design visual e UX/UI" },
+            { nome: "Dados", descricao: "Área de análise e ciência de dados" },
+        ];
+
+        for (const cat of categorias) {
+            const nova = categoriaRepo.create(cat);
+            await categoriaRepo.save(nova);
+        }
+
+        console.log("✅ Categorias iniciais criadas!");
+    } else {
+        console.log("ℹ️ Categorias já existem.");
+    }
+}
+
 
 export default app;

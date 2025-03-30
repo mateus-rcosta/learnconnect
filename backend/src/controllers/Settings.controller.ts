@@ -4,16 +4,16 @@ import { Usuario, Role } from "../entity/Usuario";
 import { AppDataSource } from "../config/ormconfig";
 import { sendError, sendSuccess } from "../utils/response";
 import { randomUUID } from "crypto";
+import { Not } from "typeorm"; // necessário para a verificação de apelido único
 
 export class UsuarioSettings {
   private static userRepo = AppDataSource.getRepository(Usuario);
 
   static updateProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const { id } = req.user as { id: string };
       const { nome, bio, apelido } = req.body;
-  
-      // Verifica se ao menos um dos campos foi informado
+
       if (!nome && !bio && !apelido) {
         return sendError(res, {
           code: "missing_fields",
@@ -21,9 +21,9 @@ export class UsuarioSettings {
           status: 400
         });
       }
-  
+
       const user = await this.userRepo.findOneBy({ id });
-  
+
       if (!user) {
         return sendError(res, {
           code: "user_not_found",
@@ -31,15 +31,30 @@ export class UsuarioSettings {
           status: 404
         });
       }
-  
-      // Atualiza apenas os campos fornecidos
+
+      // ⚠️ Verifica se o apelido já está sendo usado por outro usuário
+      if (apelido) {
+        const apelidoExistente = await this.userRepo.findOne({
+          where: { apelido, id: Not(user.id) }
+        });
+
+        if (apelidoExistente) {
+          return sendError(res, {
+            code: "apelido_in_use",
+            message: "Este apelido já está em uso por outro usuário",
+            status: 400
+          });
+        }
+
+        user.apelido = apelido;
+      }
+
       if (nome) user.nome = nome;
       if (bio) user.bio = bio;
-      if (apelido) user.apelido = apelido;
-  
+
       await this.userRepo.save(user);
-  
-      sendSuccess(res, { message: "Perfil atualizado com sucesso"});
+
+      sendSuccess(res, { message: "Perfil atualizado com sucesso" });
     } catch (error: any) {
       sendError(res, {
         code: "profile_update_failed",
@@ -107,15 +122,11 @@ export class UsuarioSettings {
       if (!user || !bcrypt.compareSync(senha, user.senha))
         return sendError(res, { code: "invalid_credentials", message: "Senha incorreta", status: 401 });
 
-      // Gera um sufixo único (timestamp + 4 caracteres aleatórios)
       const suffix = `${Date.now()}-${randomUUID().slice(0, 4)}`;
-
-      // Modifica apelido e email antes de excluir
       user.apelido = `${user.apelido}_deleted_${suffix}`;
       user.email = `${user.email}_deleted_${suffix}`;
 
-      await this.userRepo.save(user); // Salva as alterações
-
+      await this.userRepo.save(user);
       await this.userRepo.softDelete(id);
       return sendSuccess(res, { message: "Conta deletada com sucesso" });
     } catch (error) {

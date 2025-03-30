@@ -26,10 +26,12 @@ export class MaterialController {
           "mat.id",
           "mat.titulo",
           "mat.descricao",
+          "mat.thumbnail_url",
           "mat.flag",
           "mat.data_criacao",
           "usuario.nome",
           "usuario.apelido",
+          "usuario.avatar_url",
           "categoria.nome"
         ])
         .orderBy("mat.data_criacao", "DESC")

@@ -96,6 +96,7 @@ export class AuthController {
         nome,
         apelido,
         data_nascimento,
+        avatar_url: "standard_icon.png",
       });
       const savedUser = await this.userRepo.save(newUser);
       console.info("[AuthController] Usuário criado:", savedUser.id);

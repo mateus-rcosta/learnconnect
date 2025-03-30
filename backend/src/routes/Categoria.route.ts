@@ -9,6 +9,6 @@ router.post("/", authenticateJWT, authorizeAdmin, CategoriaController.addCategor
 
 router.put("/:id", authenticateJWT, authorizeAdmin, CategoriaController.updateCategoria);
 
-router.get("/", authenticateJWT, CategoriaController.getCategorias);
+router.get("/", CategoriaController.getCategorias);
 
 export default router;

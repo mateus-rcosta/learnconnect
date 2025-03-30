@@ -5,6 +5,8 @@ import { authorizeAdmin, authorizeUser } from "../middleware/Usuario.middleware"
 
 const router = Router();
 
+router.get("/me", authenticateJWT, UserController.getLoggedUser);
+
 // Busca de usuários por apelido (requer autenticação)
 router.get("/search", authenticateJWT, UserController.searchUsers);
 
@@ -19,5 +21,9 @@ router.put("/admin/:id", authenticateJWT, authorizeAdmin, UserController.updateU
 
 // Rota para exclusão de conta (Apenas o próprio Admin)
 router.delete("/admin/:id", authenticateJWT, authorizeAdmin, UserController.deleteUser);
+
+// Rota para puxar informações da conta atuais após efetuar Login
+
+
 
 export default router;

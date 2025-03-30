@@ -5,6 +5,6 @@ import { authenticateJWT } from "../middleware/auth";
 const router = Router();
 
 router.post("/:materialId", authenticateJWT, LikeController.toggleLike);  
-router.get("/:materialId", authenticateJWT, LikeController.getLikesByPost); 
+router.get("/:materialId", LikeController.getLikesByPost);
 
 export default router;
