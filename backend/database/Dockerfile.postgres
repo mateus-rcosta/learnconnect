@@ -1,5 +1,2 @@
-FROM postgres:15-alpine
-ENV POSTGRES_USER=teste
-ENV POSTGRES_PASSWORD=teste
-ENV POSTGRES_DB=teste
+FROM postgres:17
 COPY /docker-entrypoint-initdb.d/init.sql /docker-entrypoint-initdb.d/

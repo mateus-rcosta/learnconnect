@@ -8,25 +8,31 @@ services:
     depends_on:
       - postgres
     environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=teste
-      - DB_PASSWORD=teste
-      - DB_NAME=teste
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "3001:3000" 
-    depends_on:
-      - backend
+  #frontend:
+   # build:
+    #  context: ./frontend
+     # dockerfile: Dockerfile.frontend
+    #ports:
+     # - "3001:3000" 
+    #depends_on:
+     # - backend
 
   postgres:
     build:
       context: ./backend/database
       dockerfile: Dockerfile.postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432"
     volumes:

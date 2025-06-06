@@ -1,0 +1,15 @@
+# Ignora node_modules
+node_modules/
+
+# Ignora logs
+logs
+*.log
+npm-debug.log*
+
+# Ignora arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Ignora arquivos de ambiente, exceto .env.local
+.env*
+!.env.local
