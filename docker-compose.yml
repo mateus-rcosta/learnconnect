@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./backend/backend
+      dockerfile: Dockerfile.backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=teste
+      - DB_PASSWORD=teste
+      - DB_NAME=teste
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3001:3000" 
+    depends_on:
+      - backend
+
+  postgres:
+    build:
+      context: ./backend/database
+      dockerfile: Dockerfile.postgres
+    ports:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

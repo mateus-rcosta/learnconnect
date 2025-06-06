@@ -1,0 +1,33 @@
+# Etapa 1: build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copia os arquivos necessários
+COPY package.json package-lock.json* ./  
+RUN npm install
+
+COPY . .
+
+# Gera o build de produção
+RUN npm run build
+
+# Etapa 2: imagem final (mais leve, sem dev deps)
+FROM node:20-alpine AS runner
+
+# Define variável de ambiente (importante para produção Next.js)
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+# Copia apenas o necessário da etapa anterior
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/next.config.js ./
+
+EXPOSE 3000
+
+# Comando padrão
+CMD ["npm", "start"]

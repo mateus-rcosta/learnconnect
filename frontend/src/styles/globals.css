@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base { 
+  html { 
+    font-size: 25px;
+  } 
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Animações e utilitários personalizados */
+@layer utilities {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.4s ease-in-out;
+  }
+
+  .like-animation {
+    animation: pulse 0.3s ease;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.4);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .loader {
+    border-radius: 9999px;
+    border-width: 2px;
+    border-top-color: transparent;
+    animation: spin 0.5s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  /* Estilização da scrollbar geral */
+  ::-webkit-scrollbar        { width: 8px; }
+  ::-webkit-scrollbar-track  { background: #0f0f0f; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb  { background: #5c64f4; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #7478ff; }
+  /* Estilização da scrollbar Firefox */
+   * {
+    scrollbar-width: thin;  
+    scrollbar-color: #5c64f4 #0f0f0f;  
+  }
+}
