@@ -401,7 +401,7 @@ try {
         className="px-4 py-2 hover:bg-[#2a2a2a] cursor-pointer flex items-center gap-2"
         onClick={() => router.push("/settings")}
       >
-        <img src="/images/Config.png" alt="Configurações" className="w-4 h-4" />
+        tsx<br /><img src="/images/Config.png" alt="Configurações" width={16} height={16} className="w-4 h-4" />
         Configurações
       </li>
       <li
