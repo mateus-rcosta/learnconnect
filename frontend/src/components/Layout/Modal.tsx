@@ -2,7 +2,7 @@
 import React, { ReactNode } from "react";
 import clsx from "clsx";
 
-type ModalProps = {
+export type ModalProps = {
   open: boolean          // ← obrigatório
   onClose: () => void
   children: ReactNode

@@ -15,15 +15,16 @@ services:
       - DB_NAME=${DB_NAME}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - JWT_SECRET=uma_chave_bem_secreta_e_grande
 
-  #frontend:
-   # build:
-    #  context: ./frontend
-     # dockerfile: Dockerfile.frontend
-    #ports:
-     # - "3001:3000" 
-    #depends_on:
-     # - backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3001:3000" 
+    depends_on:
+      - backend
 
   postgres:
     build:
