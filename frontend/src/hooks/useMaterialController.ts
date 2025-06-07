@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 
 export function useMaterialController() {
-  const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+  const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://168.75.74.153:3000";
   const router = useRouter();
   const { id } = router.query as { id?: string };
 

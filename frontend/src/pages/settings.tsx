@@ -236,7 +236,7 @@ export default function SettingsPage() {
       </div>
     );
   }
-     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://168.75.74.153:3000";
      const [userData, setUserData] = useState({
         nome: "",              // apelido (display público)
         apelido: "",           // nome de usuário (fixo, com "@")

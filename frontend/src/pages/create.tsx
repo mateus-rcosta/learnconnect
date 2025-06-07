@@ -9,7 +9,7 @@ export default function CreatePost() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+  const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://168.75.74.153:3000";
   const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
     const localToken = localStorage.getItem("token");

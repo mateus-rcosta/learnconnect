@@ -27,7 +27,7 @@ interface Material {
 }
 
 export function useNewHomeController() {
-  const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+  const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://168.75.74.153:3000";
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userAvatarUrl, setUserAvatarUrl] = useState("/images/standard_icon.png");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
